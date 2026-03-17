@@ -1,0 +1,91 @@
+---
+# ─── Common: update + install Docker on all nodes ────────────────────────────
+- name: Prepare all nodes
+  hosts: k3s
+  become: true
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install dependencies
+      apt:
+        name:
+          - curl
+          - apt-transport-https
+          - ca-certificates
+          - gnupg
+        state: present
+
+    - name: Install Docker
+      shell: curl -fsSL https://get.docker.com | sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Add azureuser to docker group
+      user:
+        name: azureuser
+        groups: docker
+        append: true
+
+# ─── Master: install k3s server ──────────────────────────────────────────────
+- name: Install k3s on master
+  hosts: master
+  become: true
+  tasks:
+    - name: Install k3s server
+      shell: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Wait for k3s to be ready
+      wait_for:
+        path: /var/lib/rancher/k3s/server/node-token
+        state: present
+        timeout: 60
+
+    - name: Read node token
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: k3s_token
+
+    - name: Save token as fact
+      set_fact:
+        k3s_node_token: "{{ k3s_token['content'] | b64decode | trim }}"
+
+# ─── Workers: join k3s cluster ───────────────────────────────────────────────
+- name: Join workers to k3s cluster
+  hosts: workers
+  become: true
+  tasks:
+    - name: Read node token from master
+      slurp:
+        src: /var/lib/rancher/k3s/server/node-token
+      register: k3s_token
+      delegate_to: vm-master
+
+    - name: Install k3s agent
+      shell: >
+        curl -sfL https://get.k3s.io |
+        K3S_URL=https://10.0.1.5:6443
+        K3S_TOKEN={{ k3s_token['content'] | b64decode | trim }}
+        sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+# ─── Master: deploy Flask app ─────────────────────────────────────────────────
+- name: Deploy Flask app on master
+  hosts: master
+  become: true
+  tasks:
+    - name: Copy Kubernetes manifests
+      copy:
+        src: ../k8s/
+        dest: /home/azureuser/k8s/
+        owner: azureuser
+
+    - name: Apply manifests
+      shell: kubectl apply -f /home/azureuser/k8s/
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml

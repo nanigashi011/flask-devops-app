@@ -1,0 +1,27 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform.lock.hcl
+crash.log
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+!id_rsa.pub
+
+# Ansible secrets
+ansible/inventory.ini
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
