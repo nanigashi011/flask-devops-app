@@ -10,7 +10,6 @@ terraform {
 provider "azurerm" {
   features {}
   skip_provider_registration = true
-  subscription_id            = "a07aed84-1004-429d-8f92-67b33094d9ce"
 }
 
 # ─── Variables ────────────────────────────────────────────────────────────────
