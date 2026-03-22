@@ -65,6 +65,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Copy manifests to master
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.MASTER_IP }}
+          username: azureuser
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "k8s/*.yaml"
+          target: "/home/azureuser/k8s/"
+          strip_components: 1
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
