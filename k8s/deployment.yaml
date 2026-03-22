@@ -1,33 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flask-app
+  name: rest-api
   labels:
-    app: flask-app
+    app: rest-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: flask-app
+      app: rest-api
   template:
     metadata:
       labels:
-        app: flask-app
+        app: rest-api
     spec:
       containers:
-        - name: flask-app
+        - name: rest-api
           image: ghcr.io/nanigashi011/flask-devops-app:latest
           ports:
-            - containerPort: 5000
+            - containerPort: 3000
           livenessProbe:
             httpGet:
-              path: /health
-              port: 5000
+              path: /api/health
+              port: 3000
             initialDelaySeconds: 10
             periodSeconds: 10
           readinessProbe:
             httpGet:
-              path: /health
-              port: 5000
+              path: /api/health
+              port: 3000
             initialDelaySeconds: 5
             periodSeconds: 5

@@ -17,16 +17,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: "3.11"
+          node-version: "18"
 
       - name: Install dependencies
-        run: pip install -r app/requirements.txt
+        run: npm install
+        working-directory: app
 
       - name: Run tests
-        run: pytest tests/ -v
+        run: npm test
         working-directory: app
 
   build-and-push:
@@ -71,6 +72,7 @@ jobs:
           username: azureuser
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            sudo kubectl set image deployment/flask-app \
-              flask-app=ghcr.io/${{ github.repository_owner }}/flask-devops-app:latest
-            sudo kubectl rollout status deployment/flask-app
+            sudo kubectl apply -f /home/azureuser/k8s/
+            sudo kubectl set image deployment/rest-api \
+              rest-api=ghcr.io/${{ github.repository_owner }}/flask-devops-app:latest
+            sudo kubectl rollout status deployment/rest-api
