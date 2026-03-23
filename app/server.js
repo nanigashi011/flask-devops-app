@@ -1,8 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const client = require('prom-client');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// ==================== PROMETHEUS METRICS ====================
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics();
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
 
 // ==================== MIDDLEWARE ====================
 app.use(express.json());
