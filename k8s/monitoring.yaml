@@ -1,3 +1,4 @@
+
 ---
 # ─── Namespace ────────────────────────────────────────────────────────────────
 apiVersion: v1
@@ -168,3 +169,4 @@ subjects:
   - kind: ServiceAccount
     name: prometheus
     namespace: monitoring
+
